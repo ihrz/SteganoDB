@@ -1,6 +1,6 @@
 tslint.json
 test
-src
+src/index.ts
 .prettierrc
 tsconfig.json
 demo.ts

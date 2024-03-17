@@ -38,7 +38,7 @@ class SteganoDB {
         this.data = {};
 
         if (!existsSync(this.jsonFilePath)) {
-            writeFileSync(this.jsonFilePath, Buffer.alloc(0));
+            writeFileSync(this.jsonFilePath, readFileSync(__dirname + "/../src/picture/default.png"));
         } else {
             this.fetchDataFromImage();
         }
