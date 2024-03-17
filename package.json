@@ -1,0 +1,25 @@
+{
+  "name": "stegano-db",
+  "version": "1.0.0",
+  "description": "Database in png lmao",
+  "main": "./lib/index.js",
+  "scripts": {
+    "run": "npx tsc && node demo.ts",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "db",
+    "quick.db",
+    "json"
+  ],
+  "author": "Kisakay & Sown",
+  "license": "ISC",
+  "dependencies": {
+    "steggy-noencrypt": "^2.0.3"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.16",
+    "tslib": "^2.6.2",
+    "typescript": "^5.3.3"
+  }
+}

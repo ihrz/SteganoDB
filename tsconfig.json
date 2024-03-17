@@ -1,0 +1,16 @@
+{
+    "compilerOptions": {
+        "target": "ES2022",
+        "module": "CommonJS",
+        "declaration": true,
+        "outDir": "./lib",
+        "strict": true,
+        "strictNullChecks": false,
+        "moduleResolution": "Node",
+        "resolveJsonModule": true
+    },
+    "include": [
+        "src/**/*",
+        "test.js"
+    ]
+}
