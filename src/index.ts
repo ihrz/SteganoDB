@@ -50,10 +50,7 @@ class SteganoDB {
 
             const revealed = steggy.reveal(image)
             this.data = JSON.parse(revealed.toString());
-
-            console.log("From DB", this.data)
         } catch (error) {
-            console.error('Erreur lors de la récupération des données de l\'image :', error);
             this.data = {}
         }
     }
