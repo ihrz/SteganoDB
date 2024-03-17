@@ -142,11 +142,24 @@ class SteganoDB {
             throw new SyntaxError("Key can't be null or contain a space.");
         }
 
-        if (!this.data[key]) {
-            this.data[key] = [];
+        const keys = key.split('.');
+        const nestedKey = keys.pop();
+
+        let currentObject = this.data;
+
+        for (const currentKey of keys) {
+            if (!currentObject[currentKey]) {
+                currentObject[currentKey] = {};
+            }
+            currentObject = currentObject[currentKey];
         }
 
-        this.data[key].push(element);
+        if (!Array.isArray(currentObject[nestedKey])) {
+            currentObject[nestedKey] = [];
+        }
+
+        currentObject[nestedKey].push(element);
+
         this.saveDataToFile();
     }
 
