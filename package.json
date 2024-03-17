@@ -1,6 +1,6 @@
 {
   "name": "stegano.db",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "description": "Database in png lmao",
   "main": "./lib/index.js",
   "scripts": {
