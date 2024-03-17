@@ -1,5 +1,5 @@
 {
-  "name": "stegano-db",
+  "name": "stegano.db",
   "version": "1.0.0",
   "description": "Database in png lmao",
   "main": "./lib/index.js",
