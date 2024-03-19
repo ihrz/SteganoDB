@@ -4,8 +4,8 @@
   "description": "Database in png lmao",
   "main": "./lib/index.js",
   "scripts": {
-    "run": "npx tsc && node demo.ts",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "npx tsc",
+    "test": "npx tsc && node demo.ts"
   },
   "keywords": [
     "db",
@@ -13,7 +13,6 @@
     "json"
   ],
   "author": "Kisakay & Sown",
-  "license": "ISC",
   "dependencies": {
     "steggy-noencrypt": "^2.0.3"
   },
@@ -21,5 +20,17 @@
     "@types/node": "^20.11.16",
     "tslib": "^2.6.2",
     "typescript": "^5.3.3"
-  }
+  },
+  "types": "./lib/index.d.ts",
+  "directories": {
+    "lib": "lib"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Disnote-Team/SteganoDB.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Disnote-Team/SteganoDB/issues"
+  },
+  "homepage": "https://github.com/Disnote-Team/SteganoDB#readme"
 }

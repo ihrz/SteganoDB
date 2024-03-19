@@ -27,18 +27,18 @@ const getNestedProperty = (object: any, key: string) => {
 };
 
 class SteganoDB {
-    private jsonFilePath: string;
+    private pngFilePath: string;
     private options: any;
-    public data: any;
+    private data: any;
 
     constructor(filePath?: string, options?: any) {
-        this.jsonFilePath = filePath || "./steganodb.png";
+        this.pngFilePath = filePath || "./steganodb.png";
         this.options = options || {};
 
         this.data = {};
 
-        if (!existsSync(this.jsonFilePath)) {
-            writeFileSync(this.jsonFilePath, readFileSync(__dirname + "/../src/picture/default.png"));
+        if (!existsSync(this.pngFilePath)) {
+            writeFileSync(this.pngFilePath, readFileSync(__dirname + "/../src/picture/default.png"));
         } else {
             this.fetchDataFromImage();
         }
@@ -46,7 +46,7 @@ class SteganoDB {
 
     fetchDataFromImage() {
         try {
-            const image = readFileSync(this.jsonFilePath)
+            const image = readFileSync(this.pngFilePath)
 
             const revealed = steggy.reveal(image)
             this.data = JSON.parse(revealed.toString());
@@ -56,9 +56,9 @@ class SteganoDB {
     }
 
     saveDataToFile() {
-        const original = readFileSync(this.jsonFilePath);
+        const original = readFileSync(this.pngFilePath);
         const concealed = steggy.conceal(original, JSON.stringify(this.data, null, 2))
-        writeFileSync(this.jsonFilePath, concealed)
+        writeFileSync(this.pngFilePath, concealed)
     };
 
     get(key: string) {
