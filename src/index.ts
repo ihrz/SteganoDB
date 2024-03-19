@@ -44,7 +44,7 @@ class SteganoDB {
         }
     }
 
-    fetchDataFromImage() {
+    private fetchDataFromImage() {
         try {
             const image = readFileSync(this.pngFilePath)
 
@@ -55,7 +55,7 @@ class SteganoDB {
         }
     }
 
-    saveDataToFile() {
+    private saveDataToFile() {
         const original = readFileSync(this.pngFilePath);
         const concealed = steggy.conceal(original, JSON.stringify(this.data, null, 2))
         writeFileSync(this.pngFilePath, concealed)
