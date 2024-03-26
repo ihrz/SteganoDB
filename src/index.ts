@@ -89,7 +89,7 @@ class SteganoDB {
         this.saveDataToFile();
     }
 
-    public remove(key: string) {
+    public delete(key: string) {
         delete this.data[key];
         this.saveDataToFile();
     }
