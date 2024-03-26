@@ -1,4 +1,6 @@
 import { writeFileSync, existsSync, mkdirSync, readFileSync } from 'node:fs';
+import path from 'node:path';
+
 const steggy = require('steggy-noencrypt')
 
 const setNestedProperty = (object: any, key: string, value: any) => {
@@ -61,15 +63,24 @@ class SteganoDB {
         writeFileSync(this.pngFilePath, concealed)
     };
 
-    get(key: string) {
+    public table(tableName: string) {
+        const tableFilePath = path.join(
+            path.dirname(this.pngFilePath),
+            `${path.basename(this.pngFilePath, path.extname(this.pngFilePath))}_table_${tableName}.png`
+        );
+
+        return new SteganoDB(tableFilePath, this.options);
+    };
+
+    public get(key: string) {
         return getNestedProperty(this.data, key);
     }
 
-    has(key: string) {
+    public has(key: string) {
         return Boolean(getNestedProperty(this.data, key));
     }
 
-    set(key: string, value: any) {
+    public set(key: string, value: any) {
         if (key.includes(" ") || !key || key === "") {
             throw new SyntaxError("Key can't be null or contain a space.");
         }
@@ -78,12 +89,12 @@ class SteganoDB {
         this.saveDataToFile();
     }
 
-    remove(key: string) {
+    public remove(key: string) {
         delete this.data[key];
         this.saveDataToFile();
     }
 
-    cache(key: string, value: any, time: number) {
+    public cache(key: string, value: any, time: number) {
         if (key.includes(" ") || !key || key === "") {
             throw new SyntaxError("Key can't be null or contain a space.");
         }
@@ -100,7 +111,7 @@ class SteganoDB {
         }, time);
     }
 
-    add(key: string, count: number) {
+    public add(key: string, count: number) {
         if (key.includes(" ") || !key || key === "") {
             throw new SyntaxError("Key can't be null or contain a space.");
         }
@@ -117,7 +128,7 @@ class SteganoDB {
         this.saveDataToFile();
     }
 
-    sub(key: string, count: number) {
+    public sub(key: string, count: number) {
         if (key.includes(" ") || !key || key === "") {
             throw new SyntaxError("Key can't be null or contain a space.");
         }
@@ -134,7 +145,7 @@ class SteganoDB {
         this.saveDataToFile();
     }
 
-    push(key: string, element: any) {
+    public push(key: string, element: any) {
         if (key.includes(" ") || !key || key === "") {
             throw new SyntaxError("Key can't be null or contain a space.");
         }
@@ -160,12 +171,12 @@ class SteganoDB {
         this.saveDataToFile();
     }
 
-    clear() {
+    public clear() {
         this.data = {};
         this.saveDataToFile();
     }
 
-    all() {
+    public all() {
         return Object.keys(this.data).map((key) => {
             return {
                 key,
