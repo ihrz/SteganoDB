@@ -121,10 +121,10 @@ db.get('server.info');
 */
 
 db.add('server.info.slot', 10);
-// Server's slot is now at Current + 1 (2+10) : 12
+// Server's slot is now at Current + 10 (2+10) : 12
 
 db.sub('server.info.slot', 2);
-// Server's slot is now at Current + 1 (12-2) : 10
+// Server's slot is now at Current - 2 (12-2) : 10
 
 db.clear();
 // Entierly clear the database !!
