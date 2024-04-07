@@ -27,10 +27,10 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Disnote-Team/SteganoDB.git"
+    "url": "git+https://github.com/ihrz/SteganoDB.git"
   },
   "bugs": {
-    "url": "https://github.com/Disnote-Team/SteganoDB/issues"
+    "url": "https://github.com/ihrz/SteganoDB/issues"
   },
-  "homepage": "https://github.com/Disnote-Team/SteganoDB#readme"
+  "homepage": "https://github.com/ihrz/SteganoDB#readme"
 }
