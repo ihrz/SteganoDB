@@ -1,4 +1,4 @@
-import { writeFileSync, existsSync, mkdirSync, readFileSync } from 'node:fs';
+import { writeFileSync, existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 
 const steggy = require('steggy-noencrypt')
@@ -177,10 +177,10 @@ class SteganoDB {
     }
 
     public all() {
-        return Object.keys(this.data).map((key) => {
+        return Object.keys(this.data).map((id) => {
             return {
-                key,
-                data: this.data[key],
+                id,
+                value: this.data[id],
             };
         });
     }
