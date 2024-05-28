@@ -29,34 +29,12 @@ const PlayerOne = {
     nickname: 'Kisakay',
     team: 'red',
     areMod: false,
-    inventory: [
-        {
-            name: 'ak-47',
-            ammo: 30,
-            damage: {
-                head: 70,
-                body: 40,
-                leg: 10
-            }
-        }
-    ],
 };
 
 const PlayerTwo = {
     nickname: 'Sown',
     team: 'red',
     areMod: false,
-    inventory: [
-        {
-            name: 'm4a1-s',
-            ammo: 30,
-            damage: {
-                head: 70,
-                body: 30,
-                leg: 20
-            }
-        }
-    ],
 };
 
 db.push('server.players', PlayerOne);
@@ -69,16 +47,10 @@ console.log(db.get('server.players'));
     nickname: "Kisakay",
     team: "red",
     areMod: false,
-    inventory: [
-      [Object ...]
-    ],
   }, {
     nickname: "Sown",
     team: "red",
     areMod: false,
-    inventory: [
-      [Object ...]
-    ],
   }
 ]
 */
@@ -97,16 +69,10 @@ console.log(db.get('server'));
       nickname: "Kisakay",
       team: "red",
       areMod: false,
-      inventory: [
-        [Object ...]
-      ],
     }, {
       nickname: "Sown",
       team: "red",
       areMod: false,
-      inventory: [
-        [Object ...]
-      ],
     }
   ],
   info: {
@@ -150,6 +116,91 @@ db.delete('server');
 db.table('anticheat');
 // Create another database in the current directory where the database (png file) is located (a 'table')
 ```
+
+## Methods
+
+### `constructor(filePath?: string, options?: any)`
+
+Initializes a new instance of the SteganoDB class.
+
+- `filePath`: Optional. The path to the image file used for storing data. Defaults to `./steganodb.png`.
+- `options`: Optional. Additional options for the database.
+
+### `table(tableName: string): SteganoDB`
+
+Creates and returns a new SteganoDB instance for a specified table.
+
+- `tableName`: The name of the table to create.
+
+### `get(key: string): any`
+
+Retrieves the value associated with the specified key.
+
+- `key`: The key whose value should be retrieved. Supports nested keys using dot notation.
+
+### `has(key: string): boolean`
+
+Checks if a value exists for the specified key.
+
+- `key`: The key to check for existence. Supports nested keys using dot notation.
+
+### `set(key: string, value: any): void`
+
+Sets the value for the specified key.
+
+- `key`: The key to set the value for. Supports nested keys using dot notation. The key cannot be null or contain spaces.
+- `value`: The value to set.
+
+### `delete(key: string): void`
+
+Deletes the value associated with the specified key.
+
+- `key`: The key whose value should be deleted. Supports nested keys using dot notation.
+
+### `cache(key: string, value: any, time: number): void`
+
+Sets a temporary value for the specified key that will be automatically deleted after the specified time.
+
+- `key`: The key to set the temporary value for. Supports nested keys using dot notation. The key cannot be null or contain spaces.
+- `value`: The value to set.
+- `time`: The time in milliseconds after which the value should be deleted. Must be a number.
+
+### `add(key: string, count: number): void`
+
+Increments the value of the specified key by the specified count. If the key does not exist, it will be initialized to 0 before incrementing.
+
+- `key`: The key whose value should be incremented. Supports nested keys using dot notation. The key cannot be null or contain spaces.
+- `count`: The number to increment the value by. Must be a number.
+
+### `sub(key: string, count: number): void`
+
+Decrements the value of the specified key by the specified count. If the key does not exist, it will be initialized to 0 before decrementing.
+
+- `key`: The key whose value should be decremented. Supports nested keys using dot notation. The key cannot be null or contain spaces.
+- `count`: The number to decrement the value by. Must be a number.
+
+### `push(key: string, element: any): void`
+
+Pushes an element to an array associated with the specified key. If the key does not exist, an array will be created.
+
+- `key`: The key whose array should be appended to. Supports nested keys using dot notation. The key cannot be null or contain spaces.
+- `element`: The element to push into the array.
+
+### `clear(): void`
+
+Clears all data in the database.
+
+### `all(): Array<{ id: string, value: any }>`
+
+Returns an array of all key-value pairs in the database.
+
+### `fetchDataFromImage(): void`
+
+Fetches and loads data from the image file into the database.
+
+### `saveDataToFile(): void`
+
+Saves the current state of the database back to the image file.
 
 ## Creators
 
