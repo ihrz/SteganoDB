@@ -32,18 +32,19 @@ class SteganoDB {
     private data: any;
     private currentTable: string;
 
-    constructor(filePath?: string, options?: any) {
+    constructor(filePath?: string, options?: any, data?: any) {
         this.pngFilePath = filePath || "./steganodb.png";
         this.options = options || {};
+        this.currentTable = this.options.currentTable || "json";
+        this.data = data || { json: {} };
 
-        this.currentTable = "json";
-        this.data = { json: {} };
-
-        if (!existsSync(this.pngFilePath)) {
-            // Init the database with a real image if it doesn't exist
-            writeFileSync(this.pngFilePath, readFileSync(__dirname + "/../src/picture/default.png"));
-        } else {
-            this.fetchDataFromImage();
+        if (!data) {
+            if (!existsSync(this.pngFilePath)) {
+                // Init the database with a real image if it doesn't exist
+                writeFileSync(this.pngFilePath, readFileSync(__dirname + "/../src/picture/default.png"));
+            } else {
+                this.fetchDataFromImage();
+            }
         }
     }
 
@@ -64,7 +65,7 @@ class SteganoDB {
     }
 
     public table(tableName: string) {
-        return new SteganoDB(this.pngFilePath, { ...this.options, currentTable: tableName, data: this.data });
+        return new SteganoDB(this.pngFilePath, { ...this.options, currentTable: tableName }, this.data);
     }
 
     private getCurrentTableData() {
