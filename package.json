@@ -17,9 +17,9 @@
     "steggy-noencrypt": "^2.0.3"
   },
   "devDependencies": {
-    "@types/node": "^20.11.16",
-    "tslib": "^2.6.2",
-    "typescript": "^5.3.3"
+    "@types/node": "^20.14.9",
+    "tslib": "^2.6.3",
+    "typescript": "^5.5.2"
   },
   "types": "./lib/index.d.ts",
   "directories": {

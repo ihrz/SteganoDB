@@ -1,5 +1,4 @@
-import { writeFileSync, existsSync, readFileSync } from 'node:fs';
-import path from 'node:path';
+import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 
 const steggy = require('steggy-noencrypt')
 
@@ -32,15 +31,18 @@ class SteganoDB {
     private pngFilePath: string;
     private options: any;
     private data: any;
+    private currentTable: string;
 
     constructor(filePath?: string, options?: any) {
         this.pngFilePath = filePath || "./steganodb.png";
         this.options = options || {};
 
-        this.data = {};
+        this.currentTable = "json";
+        this.data = { json: {} };
 
         if (!existsSync(this.pngFilePath)) {
-            writeFileSync(this.pngFilePath, readFileSync(__dirname + "/../src/picture/default.png"));
+            // Init the database with a real image if it doesn't exist
+            writeFileSync(this.pngFilePath, readFileSync(__dirname + "/../src/picture/default.png"))
         } else {
             this.fetchDataFromImage();
         }
@@ -49,11 +51,10 @@ class SteganoDB {
     private fetchDataFromImage() {
         try {
             const image = readFileSync(this.pngFilePath)
-
             const revealed = steggy.reveal(image)
             this.data = JSON.parse(revealed.toString());
         } catch (error) {
-            this.data = {}
+            this.data = { json: {} };
         }
     }
 
@@ -64,20 +65,19 @@ class SteganoDB {
     };
 
     public table(tableName: string) {
-        const tableFilePath = path.join(
-            path.dirname(this.pngFilePath),
-            `${path.basename(this.pngFilePath, path.extname(this.pngFilePath))}_table_${tableName}.png`
-        );
-
-        return new SteganoDB(tableFilePath, this.options);
+        this.currentTable = tableName;
+        if (!this.data[tableName]) {
+            this.data[tableName] = {};
+        }
+        return this;
     };
 
     public get(key: string) {
-        return getNestedProperty(this.data, key);
+        return getNestedProperty(this.data[this.currentTable], key);
     }
 
     public has(key: string) {
-        return Boolean(getNestedProperty(this.data, key));
+        return Boolean(getNestedProperty(this.data[this.currentTable], key));
     }
 
     public set(key: string, value: any) {
@@ -85,12 +85,12 @@ class SteganoDB {
             throw new SyntaxError("Key can't be null or contain a space.");
         }
 
-        setNestedProperty(this.data, key, value);
+        setNestedProperty(this.data[this.currentTable], key, value);
         this.saveDataToFile();
     }
 
     public delete(key: string) {
-        delete this.data[key];
+        delete this.data[this.currentTable][key];
         this.saveDataToFile();
     }
 
@@ -101,13 +101,14 @@ class SteganoDB {
 
         if (!time || isNaN(time)) {
             throw new SyntaxError("The time needs to be a number. (ms)");
-        };
+        }
 
-        setNestedProperty(this.data, key, value);
+        setNestedProperty(this.data[this.currentTable], key, value);
         this.saveDataToFile();
 
         setTimeout(() => {
-            delete this.data[key];
+            delete this.data[this.currentTable][key];
+            this.saveDataToFile();
         }, time);
     }
 
@@ -120,11 +121,11 @@ class SteganoDB {
             throw new SyntaxError("The value is NaN.");
         }
 
-        if (!this.data[key]) {
-            this.data[key] = 0;
+        if (!this.data[this.currentTable][key]) {
+            this.data[this.currentTable][key] = 0;
         }
 
-        this.data[key] += count;
+        this.data[this.currentTable][key] += count;
         this.saveDataToFile();
     }
 
@@ -137,11 +138,11 @@ class SteganoDB {
             throw new SyntaxError("The value is NaN.");
         }
 
-        if (!this.data[key]) {
-            this.data[key] = 0;
+        if (!this.data[this.currentTable][key]) {
+            this.data[this.currentTable][key] = 0;
         }
 
-        this.data[key] -= count;
+        this.data[this.currentTable][key] -= count;
         this.saveDataToFile();
     }
 
@@ -153,7 +154,7 @@ class SteganoDB {
         const keys = key.split('.');
         const nestedKey = keys.pop();
 
-        let currentObject = this.data;
+        let currentObject = this.data[this.currentTable];
 
         for (const currentKey of keys) {
             if (!currentObject[currentKey]) {
@@ -172,15 +173,15 @@ class SteganoDB {
     }
 
     public clear() {
-        this.data = {};
+        this.data[this.currentTable] = {};
         this.saveDataToFile();
     }
 
     public all() {
-        return Object.keys(this.data).map((id) => {
+        return Object.keys(this.data[this.currentTable]).map((id) => {
             return {
                 id,
-                value: this.data[id],
+                value: this.data[this.currentTable][id],
             };
         });
     }
