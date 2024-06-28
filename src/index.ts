@@ -1,4 +1,6 @@
-import { existsSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
+import { promises as fsPromises } from 'node:fs';
+import writeFile from 'write-file-atomic';
 
 const steggy = require('steggy-noencrypt');
 
@@ -37,20 +39,20 @@ class SteganoDB {
         this.options = options || {};
         this.currentTable = currentTable;
         this.data = data || { json: {} };
+    }
 
-        if (!data) {
-            if (!existsSync(this.pngFilePath)) {
-                // Init the database with a real image if it doesn't exist
-                writeFileSync(this.pngFilePath, readFileSync(__dirname + "/../src/picture/default.png"));
-            } else {
-                this.fetchDataFromImage();
-            }
+    public async initialize() {
+        if (!existsSync(this.pngFilePath)) {
+            // Init the database with a real image if it doesn't exist
+            await writeFile(this.pngFilePath, readFileSync(__dirname + "/../src/picture/default.png"));
+        } else {
+            await this.fetchDataFromImage();
         }
     }
 
-    private fetchDataFromImage() {
+    private async fetchDataFromImage() {
         try {
-            const image = readFileSync(this.pngFilePath);
+            const image = await fsPromises.readFile(this.pngFilePath);
             const revealed = steggy.reveal(image);
             this.data = JSON.parse(revealed.toString());
         } catch (error) {
@@ -58,10 +60,10 @@ class SteganoDB {
         }
     }
 
-    private saveDataToFile() {
-        const original = readFileSync(this.pngFilePath);
+    private async saveDataToFile() {
+        const original = await fsPromises.readFile(this.pngFilePath);
         const concealed = steggy.conceal(original, JSON.stringify(this.data, null, 2));
-        writeFileSync(this.pngFilePath, concealed);
+        await writeFile(this.pngFilePath, concealed);
     }
 
     public table(tableName: string) {
@@ -78,29 +80,29 @@ class SteganoDB {
         return this.data[this.currentTable];
     }
 
-    public get(key: string) {
+    public async get(key: string) {
         return getNestedProperty(this.getCurrentTableData(), key);
     }
 
-    public has(key: string) {
+    public async has(key: string) {
         return Boolean(getNestedProperty(this.getCurrentTableData(), key));
     }
 
-    public set(key: string, value: any) {
+    public async set(key: string, value: any) {
         if (key.includes(" ") || !key || key === "") {
             throw new SyntaxError("Key can't be null or contain a space.");
         }
 
         setNestedProperty(this.getCurrentTableData(), key, value);
-        this.saveDataToFile();
+        await this.saveDataToFile();
     }
 
-    public delete(key: string) {
+    public async delete(key: string) {
         delete this.getCurrentTableData()[key];
-        this.saveDataToFile();
+        await this.saveDataToFile();
     }
 
-    public cache(key: string, value: any, time: number) {
+    public async cache(key: string, value: any, time: number) {
         if (key.includes(" ") || !key || key === "") {
             throw new SyntaxError("Key can't be null or contain a space.");
         }
@@ -110,15 +112,15 @@ class SteganoDB {
         }
 
         setNestedProperty(this.getCurrentTableData(), key, value);
-        this.saveDataToFile();
+        await this.saveDataToFile();
 
-        setTimeout(() => {
+        setTimeout(async () => {
             delete this.getCurrentTableData()[key];
-            this.saveDataToFile();
+            await this.saveDataToFile();
         }, time);
     }
 
-    public add(key: string, count: number) {
+    public async add(key: string, count: number) {
         if (key.includes(" ") || !key || key === "") {
             throw new SyntaxError("Key can't be null or contain a space.");
         }
@@ -132,10 +134,10 @@ class SteganoDB {
         }
 
         this.getCurrentTableData()[key] += count;
-        this.saveDataToFile();
+        await this.saveDataToFile();
     }
 
-    public sub(key: string, count: number) {
+    public async sub(key: string, count: number) {
         if (key.includes(" ") || !key || key === "") {
             throw new SyntaxError("Key can't be null or contain a space.");
         }
@@ -149,10 +151,10 @@ class SteganoDB {
         }
 
         this.getCurrentTableData()[key] -= count;
-        this.saveDataToFile();
+        await this.saveDataToFile();
     }
 
-    public push(key: string, element: any) {
+    public async push(key: string, element: any) {
         if (key.includes(" ") || !key || key === "") {
             throw new SyntaxError("Key can't be null or contain a space.");
         }
@@ -174,16 +176,15 @@ class SteganoDB {
         }
 
         currentObject[nestedKey].push(element);
-
-        this.saveDataToFile();
+        await this.saveDataToFile();
     }
 
-    public clear() {
+    public async clear() {
         this.data[this.currentTable] = {};
-        this.saveDataToFile();
+        await this.saveDataToFile();
     }
 
-    public all() {
+    public async all() {
         return Object.keys(this.getCurrentTableData()).map((id) => {
             return {
                 id,

@@ -14,7 +14,9 @@
   ],
   "author": "Kisakay & Sown",
   "dependencies": {
-    "steggy-noencrypt": "^2.0.3"
+    "@types/write-file-atomic": "^4.0.3",
+    "steggy-noencrypt": "^2.0.3",
+    "write-file-atomic": "^5.0.1"
   },
   "devDependencies": {
     "@types/node": "^20.14.9",
