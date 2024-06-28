@@ -32,10 +32,10 @@ class SteganoDB {
     private data: any;
     private currentTable: string;
 
-    constructor(filePath?: string, options?: any, data?: any) {
+    constructor(filePath?: string, options?: any, data?: any, currentTable: string = "json") {
         this.pngFilePath = filePath || "./steganodb.png";
         this.options = options || {};
-        this.currentTable = this.options.currentTable || "json";
+        this.currentTable = currentTable;
         this.data = data || { json: {} };
 
         if (!data) {
@@ -65,7 +65,10 @@ class SteganoDB {
     }
 
     public table(tableName: string) {
-        return new SteganoDB(this.pngFilePath, { ...this.options, currentTable: tableName }, this.data);
+        if (!this.data[tableName]) {
+            this.data[tableName] = {};
+        }
+        return new SteganoDB(this.pngFilePath, this.options, this.data, tableName);
     }
 
     private getCurrentTableData() {
