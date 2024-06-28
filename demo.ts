@@ -1,60 +1,40 @@
-import { SteganoDB } from "./lib";
+const { SteganoDB } = require("./lib");
 
 const db = new SteganoDB('./default.png');
 
-interface GunMetadata {
-    name: string;
-    ammo: number;
-    damage: {
-        head: number;
-        body: number;
-        leg: number;
-    };
-}
+db.push('server.players', {
+  nickname: 'Kisakay',
+  team: 'red',
+  areMod: false,
+  inventory: [
+    {
+      name: 'ak-47',
+      ammo: 30,
+      damage: {
+        head: 70,
+        body: 40,
+        leg: 10
+      }
+    }
+  ],
+});
 
-interface PlayerMetadata {
-    nickname: string;
-    team: 'red' | 'blue';
-    areMod: boolean;
-    inventory: GunMetadata[];
-}
-
-const PlayerOne: PlayerMetadata = {
-    nickname: 'Kisakay',
-    team: 'red',
-    areMod: false,
-    inventory: [
-        {
-            name: 'ak-47',
-            ammo: 30,
-            damage: {
-                head: 70,
-                body: 40,
-                leg: 10
-            }
-        }
-    ],
-};
-
-const PlayerTwo: PlayerMetadata = {
-    nickname: 'Sown',
-    team: 'red',
-    areMod: false,
-    inventory: [
-        {
-            name: 'm4a1-s',
-            ammo: 30,
-            damage: {
-                head: 70,
-                body: 30,
-                leg: 20
-            }
-        }
-    ],
-};
-
-db.push('server.players', PlayerOne);
-db.push('server.players', PlayerTwo);
+db.push('server.players', {
+  nickname: 'Sown',
+  team: 'red',
+  areMod: false,
+  inventory: [
+    {
+      name: 'm4a1-s',
+      ammo: 30,
+      damage: {
+        head: 70,
+        body: 30,
+        leg: 20
+      }
+    }
+  ],
+});
 
 db.get('server.players');
 /*
@@ -78,9 +58,9 @@ db.get('server.players');
 */
 
 db.set("server.info", {
-    server_name: "Kisakay's Server",
-    slot: 3,
-    map: 'dust2'
+  server_name: "Kisakay's Server",
+  slot: 3,
+  map: 'dust2'
 });
 
 db.get('server');
