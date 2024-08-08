@@ -15,12 +15,19 @@
 You can install SteganoDB via npm:
 
 ```bash
+# Install with npm
 npm install stegano.db
+
+# Install with yarn
+yarn add stegano.db
+
+# Install with bun
+bun i stegano.db
 ```
 
 ## Usage
 
-```javascript
+```js
 const { SteganoDB } = require('stegano.db');
 
 const db = new SteganoDB('./default.png');
@@ -114,7 +121,7 @@ db.delete('server');
 // Remove the object/value
 
 db.table('anticheat');
-// Create another database in the current directory where the database (png file) is located (a 'table')
+// Create another table
 ```
 
 ## Methods
@@ -193,14 +200,6 @@ Clears all data in the database.
 ### `all(): Array<{ id: string, value: any }>`
 
 Returns an array of all key-value pairs in the database.
-
-### `fetchDataFromImage(): void`
-
-Fetches and loads data from the image file into the database.
-
-### `saveDataToFile(): void`
-
-Saves the current state of the database back to the image file.
 
 ## Creators
 
