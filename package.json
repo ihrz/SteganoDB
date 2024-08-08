@@ -12,7 +12,7 @@
     "quick.db",
     "json"
   ],
-  "author": "Kisakay & Sown",
+  "author": "Kisakay",
   "dependencies": {
     "steggy-noencrypt": "^2.0.3"
   },
