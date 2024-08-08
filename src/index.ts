@@ -8,7 +8,11 @@ const setNestedProperty = (object: any, key: string, value: any) => {
 
     for (let i = 0; i < properties.length - 1; i++) {
         const property = properties[i];
-        currentObject[property] = currentObject[property] || {};
+
+        if (typeof currentObject[property] !== 'object' || currentObject[property] === null) {
+            currentObject[property] = {};
+        }
+
         currentObject = currentObject[property];
     }
 
