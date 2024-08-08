@@ -204,4 +204,3 @@ Returns an array of all key-value pairs in the database.
 ## Creators
 
 - [Kisakay](https://github.com/Kisakay) (Anaïs)
-- [Sown](https://github.com/sown-discord) (Ylies)
