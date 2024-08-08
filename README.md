@@ -6,7 +6,7 @@
 
 - **Simple Interface**: Easy-to-use methods to set, get, and manage data within images.
 - **TypeScript Support**: Written in TypeScript but compatible with both TypeScript and JavaScript projects.
-- **Steganography**: Uses steganography techniques to hide JSON data within images.
+- **Steganography**: Uses steganography techniques to hide data within images.
 - **Data Concealment**: Supports hiding JSON data within images without encryption for quick retrieval.
 - **Flexible Use**: Suitable for various applications, including storing configurations, sensitive data, or small datasets.
 
@@ -115,7 +115,7 @@ console.log(db.all());
 // Return the entire database
 
 console.log(db.has('server.info.lock'));
-// Return true if the value exists
+// Return true if the value exists else return false
 
 db.delete('server');
 // Remove the object/value
