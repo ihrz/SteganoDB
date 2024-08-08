@@ -96,7 +96,20 @@ class SteganoDB {
     }
 
     public delete(key: string) {
-        delete this.getCurrentTableData()[key];
+        const properties = key.split('.');
+        let currentObject = this.getCurrentTableData();
+
+        for (let i = 0; i < properties.length - 1; i++) {
+            const property = properties[i];
+
+            if (!currentObject[property]) {
+                return;
+            }
+
+            currentObject = currentObject[property];
+        }
+
+        delete currentObject[properties[properties.length - 1]];
         this.saveDataToFile();
     }
 
