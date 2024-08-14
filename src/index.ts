@@ -195,7 +195,7 @@ class SteganoDB {
         this.saveDataToFile();
     }
 
-    public clear() {
+    public deleteAll() {
         this.data[this.currentTable] = {};
         this.saveDataToFile();
     }

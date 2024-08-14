@@ -105,7 +105,7 @@ db.add('server.info.slot', 10);
 db.sub('server.info.slot', 2);
 // Server's slot is now at Current - 2 (13-2) : 11
 
-db.clear();
+db.deleteAll();
 // Entirely clear the database !!
 
 db.cache('server.info.lock', true, 3000);
@@ -193,7 +193,7 @@ Pushes an element to an array associated with the specified key. If the key does
 -   `key`: The key whose array should be appended to. Supports nested keys using dot notation. The key cannot be null or contain spaces.
 -   `element`: The element to push into the array.
 
-### `clear(): void`
+### `deleteAll(): void`
 
 Clears all data in the database.
 

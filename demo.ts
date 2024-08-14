@@ -106,7 +106,7 @@ db.add('server.info.slot', 10);
 db.sub('server.info.slot', 2);
 // Server's slot is now at Current - 2 (12-2) : 10
 
-db.clear();
+db.deleteAll();
 // Entierly clear the database !!
 
 db.cache('server.info.lock', true, 3000);
