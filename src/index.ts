@@ -62,6 +62,60 @@ class SteganoDB {
         }
     }
 
+    private updateNestedProperty(
+        key: string,
+        operation: 'get' | 'set' | 'add' | 'sub' | 'delete',
+        value?: any
+    ) {
+        const currentValue = getNestedProperty(this.getCurrentTableData(), key);
+
+        switch (operation) {
+            case 'get':
+                return currentValue;
+
+            case 'set':
+                setNestedProperty(this.getCurrentTableData(), key, value);
+                this.saveDataToFile();
+                break;
+
+            case 'add':
+                if (typeof currentValue !== 'number' && currentValue !== undefined && currentValue !== null) {
+                    throw new TypeError("The existing value is not a number.");
+                }
+                const newValue = (currentValue || 0) + value;
+                setNestedProperty(this.getCurrentTableData(), key, newValue);
+                this.saveDataToFile();
+                break;
+
+            case 'sub':
+                if (typeof currentValue !== 'number' && currentValue !== undefined && currentValue !== null) {
+                    throw new TypeError("The existing value is not a number.");
+                }
+                const subValue = (currentValue || 0) - value;
+                setNestedProperty(this.getCurrentTableData(), key, subValue);
+                this.saveDataToFile();
+                break;
+
+            case 'delete':
+                const properties = key.split('.');
+                let currentObject = this.getCurrentTableData();
+
+                for (let i = 0; i < properties.length - 1; i++) {
+                    const property = properties[i];
+
+                    if (!currentObject[property]) {
+                        return;
+                    }
+
+                    currentObject = currentObject[property];
+                }
+
+                delete currentObject[properties[properties.length - 1]];
+                this.saveDataToFile();
+                break;
+        }
+    }
+
     private saveDataToFile() {
         const original = readFileSync(this.pngFilePath);
         const concealed = steggy.conceal(original, JSON.stringify(this.data, null, 2));
@@ -83,11 +137,7 @@ class SteganoDB {
     }
 
     public get(key: string) {
-        return getNestedProperty(this.getCurrentTableData(), key);
-    }
-
-    public has(key: string) {
-        return Boolean(getNestedProperty(this.getCurrentTableData(), key));
+        return this.updateNestedProperty(key, 'get');
     }
 
     public set(key: string, value: any) {
@@ -95,44 +145,7 @@ class SteganoDB {
             throw new SyntaxError("Key can't be null or contain a space.");
         }
 
-        setNestedProperty(this.getCurrentTableData(), key, value);
-        this.saveDataToFile();
-    }
-
-    public delete(key: string) {
-        const properties = key.split('.');
-        let currentObject = this.getCurrentTableData();
-
-        for (let i = 0; i < properties.length - 1; i++) {
-            const property = properties[i];
-
-            if (!currentObject[property]) {
-                return;
-            }
-
-            currentObject = currentObject[property];
-        }
-
-        delete currentObject[properties[properties.length - 1]];
-        this.saveDataToFile();
-    }
-
-    public cache(key: string, value: any, time: number) {
-        if (key.includes(" ") || !key || key === "") {
-            throw new SyntaxError("Key can't be null or contain a space.");
-        }
-
-        if (!time || isNaN(time)) {
-            throw new SyntaxError("The time needs to be a number. (ms)");
-        }
-
-        setNestedProperty(this.getCurrentTableData(), key, value);
-        this.saveDataToFile();
-
-        setTimeout(() => {
-            delete this.getCurrentTableData()[key];
-            this.saveDataToFile();
-        }, time);
+        return this.updateNestedProperty(key, 'set', value);
     }
 
     public add(key: string, count: number) {
@@ -144,12 +157,7 @@ class SteganoDB {
             throw new SyntaxError("The value is NaN.");
         }
 
-        if (!this.getCurrentTableData()[key]) {
-            this.getCurrentTableData()[key] = 0;
-        }
-
-        this.getCurrentTableData()[key] += count;
-        this.saveDataToFile();
+        this.updateNestedProperty(key, 'add', count);
     }
 
     public sub(key: string, count: number) {
@@ -161,12 +169,27 @@ class SteganoDB {
             throw new SyntaxError("The value is NaN.");
         }
 
-        if (!this.getCurrentTableData()[key]) {
-            this.getCurrentTableData()[key] = 0;
+        this.updateNestedProperty(key, 'sub', count);
+    }
+
+    public delete(key: string) {
+        this.updateNestedProperty(key, 'delete');
+    }
+
+    public cache(key: string, value: any, time: number) {
+        if (key.includes(" ") || !key || key === "") {
+            throw new SyntaxError("Key can't be null or contain a space.");
         }
 
-        this.getCurrentTableData()[key] -= count;
-        this.saveDataToFile();
+        if (!time || isNaN(time)) {
+            throw new SyntaxError("The time needs to be a number. (ms)");
+        }
+
+        this.updateNestedProperty(key, 'set', value);
+
+        setTimeout(() => {
+            this.updateNestedProperty(key, 'delete');
+        }, time);
     }
 
     public push(key: string, element: any) {
@@ -193,6 +216,10 @@ class SteganoDB {
         currentObject[nestedKey].push(element);
 
         this.saveDataToFile();
+    }
+
+    public has(key: string) {
+        return Boolean(getNestedProperty(this.getCurrentTableData(), key));
     }
 
     public deleteAll() {
