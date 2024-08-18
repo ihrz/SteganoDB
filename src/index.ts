@@ -30,25 +30,37 @@ const getNestedProperty = (object: any, key: string) => {
     return object;
 };
 
+export interface MainClassOptions {
+    driver: "png" | "json" // soon (mp3)
+    filePath: string,
+    data?: any;
+    currentTable?: string;
+};
+
 class SteganoDB {
     private pngFilePath: string;
     private options: any;
     private data: any;
     private currentTable: string;
 
-    constructor(filePath?: string, options?: any, data?: any, currentTable: string = "json") {
-        this.pngFilePath = filePath || "./steganodb.png";
-        this.options = options || {};
-        this.currentTable = currentTable;
-        this.data = data || { json: {} };
+    constructor(options: MainClassOptions | string = "./steganodb.png") {
+        if (typeof options === "string") {
+            this.pngFilePath = options;
+            this.options = { filePath: options, driver: "png" };
+            this.data = { json: {} };
+            this.currentTable = "json";
+        } else {
+            this.pngFilePath = options.filePath || "./steganodb.png";
+            this.options = options;
+            this.data = options.data || { json: {} };
+            this.currentTable = options.currentTable || "json";
+        }
 
-        if (!data) {
-            if (!existsSync(this.pngFilePath)) {
-                // Init the database with a real image if it doesn't exist
-                writeFileSync(this.pngFilePath, readFileSync(__dirname + "/../src/picture/default.png"));
-            } else {
-                this.fetchDataFromImage();
-            }
+        if (!existsSync(this.pngFilePath)) {
+            // Init the database with a real image if it doesn't exist
+            writeFileSync(this.pngFilePath, readFileSync(__dirname + "/../src/picture/default.png"));
+        } else {
+            this.fetchDataFromImage();
         }
     }
 
@@ -126,7 +138,7 @@ class SteganoDB {
         if (!this.data[tableName]) {
             this.data[tableName] = {};
         }
-        return new SteganoDB(this.pngFilePath, this.options, this.data, tableName);
+        return new SteganoDB(this.options);
     }
 
     private getCurrentTableData() {
