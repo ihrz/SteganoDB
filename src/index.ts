@@ -31,46 +31,66 @@ const getNestedProperty = (object: any, key: string) => {
 };
 
 export interface MainClassOptions {
-    driver: "png" | "json" // soon (mp3)
-    filePath: string,
+    driver: "png" | "json"; // Soon (mp3)
+    filePath: string;
     data?: any;
     currentTable?: string;
 };
 
 class SteganoDB {
-    private pngFilePath: string;
-    private options: any;
+    private filePath: string;
+    private options: MainClassOptions;
     private data: any;
     private currentTable: string;
 
     constructor(options: MainClassOptions | string = "./steganodb.png") {
         if (typeof options === "string") {
-            this.pngFilePath = options;
+            this.filePath = options;
             this.options = { filePath: options, driver: "png" };
             this.data = { json: {} };
             this.currentTable = "json";
         } else {
-            this.pngFilePath = options.filePath || "./steganodb.png";
+            this.filePath = options.filePath || "./steganodb.png";
             this.options = options;
             this.data = options.data || { json: {} };
             this.currentTable = options.currentTable || "json";
         }
 
-        if (!existsSync(this.pngFilePath)) {
-            // Init the database with a real image if it doesn't exist
-            writeFileSync(this.pngFilePath, readFileSync(__dirname + "/../src/picture/default.png"));
+        if (!existsSync(this.filePath)) {
+            if (this.options.driver === "png") {
+                // Init the database with a real image if it doesn't exist
+                writeFileSync(this.filePath, readFileSync(__dirname + "/../src/picture/default.png"));
+            } else if (this.options.driver === "json") {
+                // Init the database with an empty JSON if it doesn't exist
+                writeFileSync(this.filePath, JSON.stringify(this.data));
+            }
         } else {
-            this.fetchDataFromImage();
+            this.fetchDataFromFile();
         }
     }
 
-    private fetchDataFromImage() {
+    private fetchDataFromFile() {
         try {
-            const image = readFileSync(this.pngFilePath);
-            const revealed = steggy.reveal(image);
-            this.data = JSON.parse(revealed.toString());
+            if (this.options.driver === "png") {
+                const image = readFileSync(this.filePath);
+                const revealed = steggy.reveal(image);
+                this.data = JSON.parse(revealed.toString());
+            } else if (this.options.driver === "json") {
+                const content = readFileSync(this.filePath, 'utf8');
+                this.data = JSON.parse(content);
+            }
         } catch (error) {
             this.data = { json: {} };
+        }
+    }
+
+    private saveDataToFile() {
+        if (this.options.driver === "png") {
+            const original = readFileSync(this.filePath);
+            const concealed = steggy.conceal(original, JSON.stringify(this.data, null, 2));
+            writeFileSync(this.filePath, concealed);
+        } else if (this.options.driver === "json") {
+            writeFileSync(this.filePath, JSON.stringify(this.data, null, 2));
         }
     }
 
@@ -126,12 +146,6 @@ class SteganoDB {
                 this.saveDataToFile();
                 break;
         }
-    }
-
-    private saveDataToFile() {
-        const original = readFileSync(this.pngFilePath);
-        const concealed = steggy.conceal(original, JSON.stringify(this.data, null, 2));
-        writeFileSync(this.pngFilePath, concealed);
     }
 
     public table(tableName: string) {
