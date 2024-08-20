@@ -31,11 +31,11 @@ const getNestedProperty = (object: any, key: string) => {
 };
 
 export interface MainClassOptions {
-    driver: "png" | "json"; // Soon (mp3)
+    driver: "png" | "json";
     filePath: string;
     data?: any;
     currentTable?: string;
-};
+}
 
 class SteganoDB {
     private filePath: string;
@@ -47,21 +47,19 @@ class SteganoDB {
         if (typeof options === "string") {
             this.filePath = options;
             this.options = { filePath: options, driver: "png" };
-            this.data = { json: {} };
+            this.data = { json: [] };
             this.currentTable = "json";
         } else {
             this.filePath = options.filePath || "./steganodb.png";
             this.options = options;
-            this.data = options.data || { json: {} };
+            this.data = options.data || { json: [] };
             this.currentTable = options.currentTable || "json";
         }
 
         if (!existsSync(this.filePath)) {
             if (this.options.driver === "png") {
-                // Init the database with a real image if it doesn't exist
                 writeFileSync(this.filePath, readFileSync(__dirname + "/../src/picture/default.png"));
             } else if (this.options.driver === "json") {
-                // Init the database with an empty JSON if it doesn't exist
                 writeFileSync(this.filePath, JSON.stringify(this.data));
             }
         } else {
@@ -80,7 +78,7 @@ class SteganoDB {
                 this.data = JSON.parse(content);
             }
         } catch (error) {
-            this.data = { json: {} };
+            this.data = { json: [] };
         }
     }
 
@@ -99,46 +97,57 @@ class SteganoDB {
         operation: 'get' | 'set' | 'add' | 'sub' | 'delete',
         value?: any
     ) {
-        const currentValue = getNestedProperty(this.getCurrentTableData(), key);
+        let currentValue = this.data[this.currentTable].find((entry: any) => entry.id === key.split('.')[0]);
+
+        if (!currentValue) {
+            currentValue = { id: key.split('.')[0], value: {} };
+            this.data[this.currentTable].push(currentValue);
+        }
 
         switch (operation) {
             case 'get':
-                return currentValue;
+                return getNestedProperty(currentValue.value, key.replace(key.split('.')[0] + '.', ''));
 
             case 'set':
-                setNestedProperty(this.getCurrentTableData(), key, value);
+                setNestedProperty(currentValue.value, key.replace(key.split('.')[0] + '.', ''), value);
                 this.saveDataToFile();
                 break;
 
             case 'add':
-                if (typeof currentValue !== 'number' && currentValue !== undefined && currentValue !== null) {
+                const existingAddValue = getNestedProperty(currentValue.value, key.replace(key.split('.')[0] + '.', ''));
+                if (typeof existingAddValue === 'undefined') {
+                    setNestedProperty(currentValue.value, key.replace(key.split('.')[0] + '.', ''), value);
+                } else if (typeof existingAddValue !== 'number') {
                     throw new TypeError("The existing value is not a number.");
+                } else {
+                    const newAddValue = existingAddValue + value;
+                    setNestedProperty(currentValue.value, key.replace(key.split('.')[0] + '.', ''), newAddValue);
                 }
-                const newValue = (currentValue || 0) + value;
-                setNestedProperty(this.getCurrentTableData(), key, newValue);
                 this.saveDataToFile();
                 break;
 
             case 'sub':
-                if (typeof currentValue !== 'number' && currentValue !== undefined && currentValue !== null) {
+                const existingSubValue = getNestedProperty(currentValue.value, key.replace(key.split('.')[0] + '.', ''));
+                if (typeof existingSubValue === 'undefined') {
+                    setNestedProperty(currentValue.value, key.replace(key.split('.')[0] + '.', ''), -value);
+                } else if (typeof existingSubValue !== 'number') {
                     throw new TypeError("The existing value is not a number.");
+                } else {
+                    const newSubValue = existingSubValue - value;
+                    setNestedProperty(currentValue.value, key.replace(key.split('.')[0] + '.', ''), newSubValue);
                 }
-                const subValue = (currentValue || 0) - value;
-                setNestedProperty(this.getCurrentTableData(), key, subValue);
                 this.saveDataToFile();
                 break;
 
             case 'delete':
-                const properties = key.split('.');
-                let currentObject = this.getCurrentTableData();
+                const properties = key.replace(key.split('.')[0] + '.', '').split('.');
+                let currentObject = currentValue.value;
 
                 for (let i = 0; i < properties.length - 1; i++) {
                     const property = properties[i];
-
                     if (!currentObject[property]) {
                         return;
                     }
-
                     currentObject = currentObject[property];
                 }
 
@@ -149,18 +158,17 @@ class SteganoDB {
     }
 
     public table(tableName: string) {
-        if (!this.data[tableName]) {
-            this.data[tableName] = {};
+        if (tableName.includes(" ") || !tableName || tableName === "") {
+            throw new SyntaxError("Key can't be null or contain a space.");
         }
+
+        if (!this.data[tableName]) {
+            this.data[tableName] = [];
+        }
+
         return new SteganoDB(this.options);
     }
 
-    private getCurrentTableData() {
-        if (!this.data[this.currentTable]) {
-            this.data[this.currentTable] = {};
-        }
-        return this.data[this.currentTable];
-    }
 
     public get(key: string) {
         return this.updateNestedProperty(key, 'get');
@@ -171,7 +179,7 @@ class SteganoDB {
             throw new SyntaxError("Key can't be null or contain a space.");
         }
 
-        return this.updateNestedProperty(key, 'set', value);
+        this.updateNestedProperty(key, 'set', value);
     }
 
     public add(key: string, count: number) {
@@ -204,7 +212,7 @@ class SteganoDB {
 
     public cache(key: string, value: any, time: number) {
         if (key.includes(" ") || !key || key === "") {
-            throw new SyntaxError("Key can't be null or contain a space.");
+            throw new SyntaxError("Key can't be null ou contain a space.");
         }
 
         if (!time || isNaN(time)) {
@@ -223,10 +231,17 @@ class SteganoDB {
             throw new SyntaxError("Key can't be null or contain a space.");
         }
 
+        let currentValue = this.data[this.currentTable].find((entry: any) => entry.id === key.split('.')[0]);
+
+        if (!currentValue) {
+            currentValue = { id: key.split('.')[0], value: {} };
+            this.data[this.currentTable].push(currentValue);
+        }
+
         const keys = key.split('.');
         const nestedKey = keys.pop();
 
-        let currentObject = this.getCurrentTableData();
+        let currentObject = currentValue.value;
 
         for (const currentKey of keys) {
             if (!currentObject[currentKey]) {
@@ -245,21 +260,16 @@ class SteganoDB {
     }
 
     public has(key: string) {
-        return Boolean(getNestedProperty(this.getCurrentTableData(), key));
+        return Boolean(this.get(key));
     }
 
     public deleteAll() {
-        this.data[this.currentTable] = {};
+        this.data[this.currentTable] = [];
         this.saveDataToFile();
     }
 
     public all() {
-        return Object.keys(this.getCurrentTableData()).map((id) => {
-            return {
-                id,
-                value: this.getCurrentTableData()[id],
-            };
-        });
+        return this.data[this.currentTable];
     }
 }
 

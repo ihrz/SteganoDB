@@ -17,7 +17,7 @@
     "steggy-noencrypt": "^2.0.3"
   },
   "devDependencies": {
-    "@types/node": "^22.1.0",
+    "@types/node": "^22.4.1",
     "tslib": "^2.6.3",
     "typescript": "^5.5.4"
   },
