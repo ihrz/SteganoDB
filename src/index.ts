@@ -268,7 +268,7 @@ class SteganoDB {
         this.saveDataToFile();
     }
 
-    public all() {
+    public all(): { id: string; value: any }[] {
         return this.data[this.currentTable];
     }
 }
