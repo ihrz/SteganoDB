@@ -201,6 +201,11 @@ Clears all data in the database.
 
 Returns an array of all key-value pairs in the database.
 
+### `pull(key: string, element: any): void`
+
+Pull an element of an array associated with the specified key
+
+
 ## Creators
 
 -   [Kisakay](https://github.com/Kisakay) (Anaïs)
