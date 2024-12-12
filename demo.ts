@@ -123,3 +123,8 @@ db.delete('server');
 
 db.table('anticheat');
 // Create an another database in the current directory where are the database (png file) (an 'table')
+
+db.set("array1", [1, 2, 3])
+db.pull("array1", 2);
+
+db.get("array1") // [1,3]
