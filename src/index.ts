@@ -1,9 +1,10 @@
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
+import { parse as tomlParse, stringify as tomlStringify } from 'smol-toml'
 
 const steggy = require('steggy-noencrypt');
 
 export interface MainClassOptions {
-    driver: "png" | "json";
+    driver: "png" | "json" | "toml";
     filePath: string;
     data?: any;
     currentTable?: string;
@@ -33,6 +34,8 @@ class SteganoDB {
                 writeFileSync(this.filePath, readFileSync(__dirname + "/../src/picture/default.png"));
             } else if (this.options.driver === "json") {
                 writeFileSync(this.filePath, JSON.stringify(this.data));
+            } else if (this.options.driver === "toml") {
+                writeFileSync(this.filePath, tomlStringify(this.data));
             }
         } else {
             this.fetchDataFromFile();
@@ -76,6 +79,9 @@ class SteganoDB {
             } else if (this.options.driver === "json") {
                 const content = readFileSync(this.filePath, 'utf8');
                 this.data = JSON.parse(content);
+            } else if (this.options.driver === "toml") {
+                const content = readFileSync(this.filePath, 'utf8');
+                this.data = tomlParse(content);
             }
         } catch (error) {
             this.data = { json: [] };
@@ -89,6 +95,8 @@ class SteganoDB {
             writeFileSync(this.filePath, concealed);
         } else if (this.options.driver === "json") {
             writeFileSync(this.filePath, JSON.stringify(this.data, null, 2));
+        } else if (this.options.driver === "toml") {
+            writeFileSync(this.filePath, tomlStringify(this.data));
         }
     }
 
