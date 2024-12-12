@@ -128,4 +128,20 @@ describe('SteganoDB', () => {
         db.delete('level1.level2.level3.number');
         expect(db.get('level1.level2.level3.number')).toBeUndefined();
     });
+
+    test('should pull method work', () => {
+        db.set('array1', [1, 2, 3]);
+        expect(db.get('array1')).toEqual([1, 2, 3]);
+
+        db.pull('array1', 10);
+        expect(db.get('array1')).toEqual([1, 2, 3]);
+
+        db.pull('array1', 2)
+        expect(db.get('array1')).toEqual([1, 3]);
+        db.pull('array1', 1)
+        expect(db.get('array1')).toEqual([3]);
+
+        db.delete('array1');
+        expect(db.get('array1')).toBeUndefined();
+    });
 });

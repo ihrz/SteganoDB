@@ -2,34 +2,6 @@ import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 
 const steggy = require('steggy-noencrypt');
 
-const setNestedProperty = (object: any, key: string, value: any) => {
-    const properties = key.split('.');
-    let currentObject = object;
-
-    for (let i = 0; i < properties.length - 1; i++) {
-        const property = properties[i];
-
-        if (typeof currentObject[property] !== 'object' || currentObject[property] === null) {
-            currentObject[property] = {};
-        }
-
-        currentObject = currentObject[property];
-    }
-
-    currentObject[properties[properties.length - 1]] = value;
-};
-
-const getNestedProperty = (object: any, key: string) => {
-    const properties = key.split('.');
-    let index = 0;
-
-    for (; index < properties.length; ++index) {
-        object = object && object[properties[index]];
-    }
-
-    return object;
-};
-
 export interface MainClassOptions {
     driver: "png" | "json";
     filePath: string;
@@ -67,6 +39,34 @@ class SteganoDB {
         }
     }
 
+    private setNestedProperty = (object: any, key: string, value: any) => {
+        const properties = key.split('.');
+        let currentObject = object;
+
+        for (let i = 0; i < properties.length - 1; i++) {
+            const property = properties[i];
+
+            if (typeof currentObject[property] !== 'object' || currentObject[property] === null) {
+                currentObject[property] = {};
+            }
+
+            currentObject = currentObject[property];
+        }
+
+        currentObject[properties[properties.length - 1]] = value;
+    };
+
+    private getNestedProperty = (object: any, key: string) => {
+        const properties = key.split('.');
+        let index = 0;
+
+        for (; index < properties.length; ++index) {
+            object = object && object[properties[index]];
+        }
+
+        return object;
+    };
+
     private fetchDataFromFile() {
         try {
             if (this.options.driver === "png") {
@@ -94,7 +94,7 @@ class SteganoDB {
 
     private updateNestedProperty(
         key: string,
-        operation: 'get' | 'set' | 'add' | 'sub' | 'delete',
+        operation: 'get' | 'set' | 'add' | 'sub' | 'delete' | 'pull',
         value?: any
     ) {
         let currentValue = this.data[this.currentTable].find((entry: any) => entry.id === key.split('.')[0]);
@@ -106,35 +106,34 @@ class SteganoDB {
 
         switch (operation) {
             case 'get':
-                return getNestedProperty(currentValue.value, key.replace(key.split('.')[0] + '.', ''));
-
+                return this.getNestedProperty(currentValue.value, key.replace(key.split('.')[0] + '.', ''));
             case 'set':
-                setNestedProperty(currentValue.value, key.replace(key.split('.')[0] + '.', ''), value);
+                this.setNestedProperty(currentValue.value, key.replace(key.split('.')[0] + '.', ''), value);
                 this.saveDataToFile();
                 break;
 
             case 'add':
-                const existingAddValue = getNestedProperty(currentValue.value, key.replace(key.split('.')[0] + '.', ''));
+                const existingAddValue = this.getNestedProperty(currentValue.value, key.replace(key.split('.')[0] + '.', ''));
                 if (typeof existingAddValue === 'undefined') {
-                    setNestedProperty(currentValue.value, key.replace(key.split('.')[0] + '.', ''), value);
+                    this.setNestedProperty(currentValue.value, key.replace(key.split('.')[0] + '.', ''), value);
                 } else if (typeof existingAddValue !== 'number') {
                     throw new TypeError("The existing value is not a number.");
                 } else {
                     const newAddValue = existingAddValue + value;
-                    setNestedProperty(currentValue.value, key.replace(key.split('.')[0] + '.', ''), newAddValue);
+                    this.setNestedProperty(currentValue.value, key.replace(key.split('.')[0] + '.', ''), newAddValue);
                 }
                 this.saveDataToFile();
                 break;
 
             case 'sub':
-                const existingSubValue = getNestedProperty(currentValue.value, key.replace(key.split('.')[0] + '.', ''));
+                const existingSubValue = this.getNestedProperty(currentValue.value, key.replace(key.split('.')[0] + '.', ''));
                 if (typeof existingSubValue === 'undefined') {
-                    setNestedProperty(currentValue.value, key.replace(key.split('.')[0] + '.', ''), -value);
+                    this.setNestedProperty(currentValue.value, key.replace(key.split('.')[0] + '.', ''), -value);
                 } else if (typeof existingSubValue !== 'number') {
                     throw new TypeError("The existing value is not a number.");
                 } else {
                     const newSubValue = existingSubValue - value;
-                    setNestedProperty(currentValue.value, key.replace(key.split('.')[0] + '.', ''), newSubValue);
+                    this.setNestedProperty(currentValue.value, key.replace(key.split('.')[0] + '.', ''), newSubValue);
                 }
                 this.saveDataToFile();
                 break;
@@ -152,6 +151,15 @@ class SteganoDB {
                 }
 
                 delete currentObject[properties[properties.length - 1]];
+                this.saveDataToFile();
+                break;
+            case 'pull':
+                const existingArray = this.getNestedProperty(currentValue.value, key.replace(key.split('.')[0] + '.', ''));
+                if (!Array.isArray(existingArray)) {
+                    throw new Error('The stored value is not an array');
+                }
+                const newArray = existingArray.filter((item) => item !== value);
+                this.setNestedProperty(currentValue.value, key.replace(key.split('.')[0] + '.', ''), newArray);
                 this.saveDataToFile();
                 break;
         }
@@ -180,6 +188,14 @@ class SteganoDB {
         }
 
         this.updateNestedProperty(key, 'set', value);
+    }
+
+    public pull(key: string, value: any) {
+        if (key.includes(" ") || !key || key === "") {
+            throw new SyntaxError("Key can't be null or contain a space.");
+        }
+
+        this.updateNestedProperty(key, 'pull', value);
     }
 
     public add(key: string, count: number) {
