@@ -1,4 +1,4 @@
-const { SteganoDB } = require("./lib");
+import { SteganoDB } from "./lib";
 
 const db = new SteganoDB('./default.png');
 
