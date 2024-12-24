@@ -105,69 +105,89 @@ class SteganoDB {
         operation: 'get' | 'set' | 'add' | 'sub' | 'delete' | 'pull',
         value?: any
     ) {
-        let currentValue = this.data[this.currentTable].find((entry: any) => entry.id === key.split('.')[0]);
+        const [id, ...rest] = key.split('.');
+        const nestedPath = rest.join('.');
 
-        if (!currentValue) {
-            currentValue = { id: key.split('.')[0], value: {} };
+        let currentValue = this.data[this.currentTable].find((entry: any) => entry.id === id);
+
+        if (!currentValue && operation !== 'get') {
+            currentValue = { id, value: {} };
             this.data[this.currentTable].push(currentValue);
+        }
+
+        if (!currentValue && operation === 'get') {
+            return undefined;
         }
 
         switch (operation) {
             case 'get':
-                return this.getNestedProperty(currentValue.value, key.replace(key.split('.')[0] + '.', ''));
+                return nestedPath ? this.getNestedProperty(currentValue.value, nestedPath) : currentValue.value;
             case 'set':
-                this.setNestedProperty(currentValue.value, key.replace(key.split('.')[0] + '.', ''), value);
+                if (nestedPath) {
+                    this.setNestedProperty(currentValue.value, nestedPath, value);
+                } else {
+                    currentValue.value = value;
+                }
                 this.saveDataToFile();
                 break;
-
             case 'add':
-                const existingAddValue = this.getNestedProperty(currentValue.value, key.replace(key.split('.')[0] + '.', ''));
-                if (typeof existingAddValue === 'undefined') {
-                    this.setNestedProperty(currentValue.value, key.replace(key.split('.')[0] + '.', ''), value);
-                } else if (typeof existingAddValue !== 'number') {
-                    throw new TypeError("The existing value is not a number.");
+                if (!nestedPath) {
+                    currentValue.value = (typeof currentValue.value === 'number' ? currentValue.value : 0) + value;
                 } else {
-                    const newAddValue = existingAddValue + value;
-                    this.setNestedProperty(currentValue.value, key.replace(key.split('.')[0] + '.', ''), newAddValue);
-                }
-                this.saveDataToFile();
-                break;
-
-            case 'sub':
-                const existingSubValue = this.getNestedProperty(currentValue.value, key.replace(key.split('.')[0] + '.', ''));
-                if (typeof existingSubValue === 'undefined') {
-                    this.setNestedProperty(currentValue.value, key.replace(key.split('.')[0] + '.', ''), -value);
-                } else if (typeof existingSubValue !== 'number') {
-                    throw new TypeError("The existing value is not a number.");
-                } else {
-                    const newSubValue = existingSubValue - value;
-                    this.setNestedProperty(currentValue.value, key.replace(key.split('.')[0] + '.', ''), newSubValue);
-                }
-                this.saveDataToFile();
-                break;
-
-            case 'delete':
-                const properties = key.replace(key.split('.')[0] + '.', '').split('.');
-                let currentObject = currentValue.value;
-
-                for (let i = 0; i < properties.length - 1; i++) {
-                    const property = properties[i];
-                    if (!currentObject[property]) {
-                        return;
+                    const existingValue = this.getNestedProperty(currentValue.value, nestedPath);
+                    if (typeof existingValue !== 'number' && existingValue !== undefined) {
+                        throw new TypeError('The existing value is not a number.');
                     }
-                    currentObject = currentObject[property];
-                }
 
-                delete currentObject[properties[properties.length - 1]];
+                    this.setNestedProperty(currentValue.value, nestedPath, (typeof existingValue === 'number' ? existingValue : 0) + value);
+                }
+                this.saveDataToFile();
+                break;
+            case 'sub':
+                if (!nestedPath) {
+                    currentValue.value = (typeof currentValue.value === 'number' ? currentValue.value : 0) - value;
+                } else {
+                    const existingValue = this.getNestedProperty(currentValue.value, nestedPath);
+                    if (typeof existingValue !== 'number' && existingValue !== undefined && existingValue !== null) {
+                        throw new TypeError('The existing value is not a number.');
+                    }
+                    this.setNestedProperty(currentValue.value, nestedPath, (typeof existingValue === 'number' ? existingValue : 0) - value);
+                }
+                this.saveDataToFile();
+                break;
+            case 'delete':
+                if (nestedPath) {
+                    const properties = nestedPath.split('.');
+                    let currentObject = currentValue.value;
+
+                    for (let i = 0; i < properties.length - 1; i++) {
+                        const property = properties[i];
+                        if (!currentObject[property]) {
+                            return;
+                        }
+                        currentObject = currentObject[property];
+                    }
+
+                    delete currentObject[properties[properties.length - 1]];
+                } else {
+                    const index = this.data[this.currentTable].findIndex((entry: any) => entry.id === id);
+                    if (index !== -1) {
+                        this.data[this.currentTable].splice(index, 1);
+                    }
+                }
                 this.saveDataToFile();
                 break;
             case 'pull':
-                const existingArray = this.getNestedProperty(currentValue.value, key.replace(key.split('.')[0] + '.', ''));
+                const existingArray = nestedPath ? this.getNestedProperty(currentValue.value, nestedPath) : currentValue.value;
                 if (!Array.isArray(existingArray)) {
                     throw new Error('The stored value is not an array');
                 }
                 const newArray = existingArray.filter((item) => item !== value);
-                this.setNestedProperty(currentValue.value, key.replace(key.split('.')[0] + '.', ''), newArray);
+                if (nestedPath) {
+                    this.setNestedProperty(currentValue.value, nestedPath, newArray);
+                } else {
+                    currentValue.value = newArray;
+                }
                 this.saveDataToFile();
                 break;
         }
@@ -250,35 +270,38 @@ class SteganoDB {
         }, time);
     }
 
+
     public push(key: string, element: any) {
         if (key.includes(" ") || !key || key === "") {
             throw new SyntaxError("Key can't be null or contain a space.");
         }
 
-        let currentValue = this.data[this.currentTable].find((entry: any) => entry.id === key.split('.')[0]);
+        const [id, ...rest] = key.split('.');
+        const nestedPath = rest.join('.');
+
+        let currentValue = this.data[this.currentTable].find((entry: any) => entry.id === id);
 
         if (!currentValue) {
-            currentValue = { id: key.split('.')[0], value: {} };
+            currentValue = { id, value: nestedPath ? {} : [] };
             this.data[this.currentTable].push(currentValue);
         }
 
-        const keys = key.split('.');
-        const nestedKey = keys.pop();
-
-        let currentObject = currentValue.value;
-
-        for (const currentKey of keys) {
-            if (!currentObject[currentKey]) {
-                currentObject[currentKey] = {};
+        if (nestedPath) {
+            const existingArray = this.getNestedProperty(currentValue.value, nestedPath);
+            if (!existingArray) {
+                this.setNestedProperty(currentValue.value, nestedPath, [element]);
+            } else if (!Array.isArray(existingArray)) {
+                throw new Error('The stored value is not an array');
+            } else {
+                existingArray.push(element);
+                this.setNestedProperty(currentValue.value, nestedPath, existingArray);
             }
-            currentObject = currentObject[currentKey];
+        } else {
+            if (!Array.isArray(currentValue.value)) {
+                currentValue.value = [];
+            }
+            currentValue.value.push(element);
         }
-
-        if (!Array.isArray(currentObject[nestedKey])) {
-            currentObject[nestedKey] = [];
-        }
-
-        currentObject[nestedKey].push(element);
 
         this.saveDataToFile();
     }

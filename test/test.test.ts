@@ -27,6 +27,19 @@ describe('SteganoDB', () => {
     test('should set and get a value', () => {
         db.set('user.name', 'Alice');
         expect(db.get('user.name')).toBe('Alice');
+
+        db.set("test", {
+            message: "Hello, World!",
+            number: 42,
+            boolean: true,
+            array: [1, 2, 3],
+            object: {
+                key: "value"
+            },
+            null: null
+        })
+
+        expect(db.get("test.array")).toEqual([1, 2, 3]);
     });
 
     test('should add a value to a nested key', () => {
@@ -77,15 +90,17 @@ describe('SteganoDB', () => {
         db.set('user.name', 'Alice');
         db.set('user.age', 30);
         const all = db.all();
-        expect(all).toEqual([
-            {
-                id: "user",
-                value: {
-                    name: "Alice",
-                    age: 30,
+        expect(all).toEqual(
+            [
+                {
+                    id: "user",
+                    value: {
+                        name: "Alice",
+                        age: 30,
+                    },
                 },
-            },
-        ]);
+            ]
+        );
     });
 
 
